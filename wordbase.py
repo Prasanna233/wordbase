@@ -88,11 +88,17 @@ def all_words(grid, x, y, (current_word, current_score)=('', 0), been={}):
     result = []
     if current_word in words:
         result.append(current_state)
+
+    grid_neighbours = []
     for [dx, dy] in directions:
         nx = x + dx
         ny = y + dy
         if not out_of_bounds(nx, ny) and (nx, ny) not in been:
-            result = result + all_words(grid, nx, ny, current_state, been.copy())
+            grid_neighbours.append((nx, ny))
+
+    for (nx, ny) in grid_neighbours:
+        result = result + all_words(grid, nx, ny, current_state, been.copy())
+
     return result
 
 # This indicates whether player position is at the top. If it's
