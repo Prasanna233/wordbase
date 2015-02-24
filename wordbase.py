@@ -1,5 +1,6 @@
 
 import string
+import trie
 
 # words = ['abc', 'abcdye', 'bed', 'dey', 'xe']
 
@@ -9,6 +10,8 @@ for letter in list(string.ascii_lowercase):
         content = f.readlines()
         for word in content:
             words[word.strip()] = True
+
+word_trie = trie.make_trie(words.keys())
 
 # grid = [
 #     ['a', 'b', 'd', 'f'],
@@ -74,6 +77,16 @@ print 'board: %dx%d' % (width, height)
 def out_of_bounds(x, y):
     return not (x >= 0 and y >= 0 and x < width and y < height)
 
+def intersect(xs, ys):
+    ht = {}
+    result = []
+    for x in xs:
+        ht[x] = True
+    for y in ys:
+        if y in ht:
+            result.append(y)
+    return result
+
 def all_words(grid, x, y, (current_word, current_score)=('', 0), been={}):
     if len(current_word) > 10:
         return []
@@ -85,16 +98,24 @@ def all_words(grid, x, y, (current_word, current_score)=('', 0), been={}):
     current_state = (current_word, max(current_score, y))
     been[(x, y)] = True
 
-    result = []
-    if current_word in words:
-        result.append(current_state)
-
     grid_neighbours = []
     for [dx, dy] in directions:
         nx = x + dx
         ny = y + dy
         if not out_of_bounds(nx, ny) and (nx, ny) not in been:
             grid_neighbours.append((nx, ny))
+
+    neighbouring_letters = [grid[y][x] for (x, y) in grid_neighbours]
+
+    result = []
+
+    (in_dictionary, neighbours) = trie.in_trie_neighbours(word_trie, current_word)
+
+    if in_dictionary:
+        result.append(current_state)
+
+    if not intersect(neighbours, neighbouring_letters):
+        return result
 
     for (nx, ny) in grid_neighbours:
         result = result + all_words(grid, nx, ny, current_state, been.copy())
